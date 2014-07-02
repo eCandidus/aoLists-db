@@ -1,0 +1,52 @@
+{
+  "_from": "aolists@",
+  "author": "Jose E. Gonzalez jr <Jose.Gonzalez@eCandidus.com>",
+  "bin": {
+    "aoLists-db": "./bin/aolists-db"
+  },
+  "bugs": {
+    "url": "https://github.com/eCandidus/aoLists-db/"
+  },
+  "dependencies": {
+    "express": ">= 2.2.2",
+    "express-session": ">=1.4.0",
+	"raw-body": ">=1.2.2",
+    "formidable": ">=1.0.15",
+    "mongodb": ">= 0.9.2",
+    "crypto": ">=0.0.3"
+  },
+  "description": "Advanced REST Node.js interface for MongoDB with subscriptions and attachments",
+  "directories": {
+    "lib": "./lib"
+  },
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "keywords": [
+    "mongodb",
+    "mongo",
+    "db",
+    "web",
+    "rest",
+    "restful",
+    "node.js",
+    "aoLists",
+    "eCandidus",
+    "subscriptions",
+    "attachments",
+    "synch",
+    "ssl",
+    "authentication"
+  ],
+  "name": "aolists-db",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/eCandidus/aoLists-db/"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "version": "0.7.3",
+  "main": "server.js",
+  "license": "LGPL"
+}
