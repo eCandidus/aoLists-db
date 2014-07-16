@@ -106,7 +106,6 @@ NOTE:  In the above examples, the collection is required.  The ? is the delimite
 * `GET /users/:name/:pwd` - Adds a user to the user table (level=manager to flag as manager)
 * `GET /users/:name/:pwd/validate` - Returns whether the name and password are valid
 * `DELETE /users/:name` - Removes a user and subscriptions (only available to managers)
-* `GET /users/admin` - Display the administration web interface
 
 * `GET /metadata` - Returns the credentials user profile
 * `POST /metadata` - Sets the credentials user profile

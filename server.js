@@ -94,12 +94,6 @@ var config = {
                 'stylefld': 'style' // field that holds the version
             }
         },
-        'web': {
-            'index': 'index.html',
-            'css': 'styles.css',
-            'add': 'add.html',
-            'del': 'del.html'
-        },
         'defs': {
             'db': 'aoLists', // database where definitions collection is kept
             'collection': 'defs' // collection where definitions are kept
@@ -129,6 +123,7 @@ require('./lib/util_subs');
 require('./lib/util_att');
 require('./lib/util_ao');
 require('./lib/util_wu');
+require('./lib/util_string');
 
 // Log mode
 if (aofn.config.debug) {
