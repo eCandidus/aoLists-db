@@ -1,7 +1,7 @@
 /**
  *
  *		server.js
- *		aolists
+ *		aolists-db
  *
  *		2014-06-17	-	Changes to support aolLists client (by Jose E. Gonzalez jr)
  *		2013		-	Copyright (c) 2013 Mariano Fiorentino, Andrea Negro - AMID
@@ -11,6 +11,7 @@
  *		requires true UUID for the _id value as it runs on a disconnected multi-user
  *		mode.
  */
+
 /**
  *  Make room for our utilities
  */
@@ -31,20 +32,22 @@ var config = {
 
     'server': {
         'port': 42324, // port to use
-        'maxupload': '4MB', // The maximum size of an upload
+        'maxupload': '4MB', // maximum size of an upload
         'ssl': {
             'cert': null, // file name in the cwd that holds the certificate PEM file
-            'key': null // The file name in the cwd that holds the private key PEM file
+            'key': null // file name in the cwd that holds the private key PEM file
         }
     },
 
     'sessionSec': 'mysecretgoeshere', // key to encode session with
 
-    'enableDESC': true, // Enable description support
-    'enableSUBS': true, // Enable subscription support
-    'enableATTACH': true, // Enable attachment support
+    'enableDESC': true, // enable description support
+    'enableSUBS': true, // enable subscription support
+    'enableATTACH': true, // enable attachment support
 
-    'operations': [ 'count', 'csv', 'distinct', 'find', 'findone', 'idcoll', 'keys' ], // Valid operations
+    'operations': ['count', 'csv', 'distinct', 'find', 'findone', 'idcoll', 'keys'], // Valid operations
+
+    'metadata': 'metadata', // name of the metadata
 
     'db': {
         'host': 'localhost', // host address for MongoDB server
@@ -53,39 +56,42 @@ var config = {
         'options': ['limit', 'sort', 'fields', 'skip', 'hint', 'explain', 'snapshot', 'timeout'],
         // options supported
         'fields': {
-            'ver': '_ver', // The version field
-            'subs': '_subs', // the subscription field
-            'desc': '_desc', // The description field
-            'style': '_style' // The description field
+            'ver': '_ver', // version field
+            'subs': '_subs', // subscription field
+            'desc': '_desc', // description field
+            'style': '_style' // description field
         },
         'definitions': {
             'db': 'aoLists', // database where definitions collection is kept
-            'collection': 'defs' // collection where definitions are kept
+            'collection': '_defs' // collection where definitions are kept
         },
         'users': {
             'db': 'aoLists', // database where user collection is kept
             'label': 'users', // route name to be used for user related routes
             'collection': 'users', // collection where users are kept
-            'mgrlevel': 'manager', // The manager level
+            'mgrlevel': 'manager', // manager level
+            'metadata': {
+                'field': '_metadata', // field to use to store the user profile
+            },
             'fields': {
-                'namefld': 'username', // The field that holds the user name
-                'pwdfld': 'hash', // The field that holds the MD5 hash of the password
-                'levelfld': 'level', // The boolean field that holds the manager level flag
-                'syncfld': 'syncs' // The object field that holds the sync date/times
+                'namefld': 'username', // field that holds the user name
+                'pwdfld': 'hash', // field that holds the MD5 hash of the password
+                'levelfld': 'level', // boolean field that holds the manager level flag
+                'syncfld': 'syncs' // object field that holds the sync date/times
             },
             'customAuth': null // 
         },
         'attach': {
             'db': 'aoLists', // database where attachment links are kept
-            'collection': 'attach', // collection where attachment links are kept
+            'collection': '_attach', // collection where attachment links are kept
             'fields': {
-                'parentfld': 'parent', // The field that holds the parent key
-                'attfld': 'att', // The field that holds the attachment key
-                'verpfld': 'pver', // The field that holds the parents version
-                'vercfld': 'cver', // The field that holds the childs version
-                'descpfld': 'pdesc', // The field that holds the parents description
-                'desccfld': 'cdesc', // The field that holds the childs description
-                'stylefld': 'style' // The field that holds the version
+                'parentfld': 'parent', // field that holds the parent key
+                'attfld': 'att', // field that holds the attachment key
+                'verpfld': 'pver', // field that holds the parents version
+                'vercfld': 'cver', // field that holds the childs version
+                'descpfld': 'pdesc', // field that holds the parents description
+                'desccfld': 'cdesc', // field that holds the childs description
+                'stylefld': 'style' // field that holds the version
             }
         },
         'web': {
@@ -104,11 +110,10 @@ var config = {
     }
 };
 try {
-    console.log('Attempting to read "' + process.cwd() + '/config.json' + '"');
     // config.json hold CHANGES to the settings above
     config = aofn.mergeRecursive(config, JSON.parse(fs.readFileSync(process.cwd() + '/config.json')));
 } catch (e) {
-    console.log('Unable to read config - ' + e);
+    console.log('Unable to read "' + process.cwd() + '/config.json' + '" - ' + e);
 }
 aofn.config = config;
 
@@ -127,7 +132,7 @@ require('./lib/util_wu');
 
 // Log mode
 if (aofn.config.debug) {
-    console.log('aoLists launching...');
+    console.log('aoLists-db launching...');
 }
 
 // Count CPUs

@@ -33,6 +33,12 @@ echo .
 echo Basic auth...
 curl -u jose:xyz http://%ip%/users
 echo .
+echo Validate (should return ok)
+curl -u admin: http://%ip%/users/jose/xyz/validate
+echo .
+echo Validate (should return fail)
+curl -u admin: http://%ip%/users/jose/xys/validate
+echo .
 
 echo List databases...
 curl -u admin: http://%ip%/
@@ -50,8 +56,14 @@ echo .
 echo Get the metadata for a collection...
 curl -u admin: -u admin: http://%ip%/tempdb/tempcoll/metadata
 echo .
+echo List all collections with metadata
+curl -u admin: -u admin: http://%ip%/allmetadata
+echo .
 echo Upload document...
 curl -u admin: -d "{ \"_id\": \"jose\", \"_desc\": \"my record 1\" }" --header "Content-Type: application/json" --url http://%ip%/tempdb/tempcoll
+echo .
+echo Delete a collection's metadata...
+curl -u admin: -X DELETE http://%ip%/tempdb/tempcoll/metadata
 echo .
 echo Delete a collection...
 curl -u admin: -X DELETE http://%ip%/tempdb/tempcoll
@@ -165,8 +177,45 @@ echo Get AO
 curl -u admin: http://%ip%/local/test/jose/ao
 echo .
 
+echo aoList System
+echo .
+echo .
+echo Setting metadata for calling user...
+curl -u jose:xyz -d "{ \"userName\": \"Jose Gonzalez\", \"userTheme\": null, \"FYIEnabled\": true, \"AllowUpload\": true, \"collectionsAllowed\": [ \"local.ttd.av\", \"local.charts.avd\" ] }" --header "Content-Type: application/json" --url http://%ip%/metadata
+echo .
+echo Extending metadata for calling user...
+curl -u jose:xyz -d "{ \"extension\": \"The brown cow jumped over the lazy moon\" }" --header "Content-Type: application/json" --url http://%ip%/metadata/set
+echo .
+pause
+echo Getting metadata for the calling user...
+curl -u jose:xyz --url http://%ip%/metadata
+echo.
+echo Extending metadata for calling user ...
+curl -u jose:xyz -d "{ \"extension\": \"The extensions for Cathy\" }" --header "Content-Type: application/json" --url http://%ip%/users/cathy/metadata/set
+echo .
+echo Getting metadata...
+curl -u jose:xyz --url http://%ip%/users/cathy/metadata
+echo.
+
+
 echo List collections...
 curl -u admin: http://%ip%/local
+echo .
+
+echo Create Things to Do
+curl -u admin: -d "{ \"_desc\": \"Things to Do\" }" --header "Content-Type: application/json" --url http://%ip%/local/ttd/metadata
+echo .
+
+echo Create Appointments
+curl -u admin: -d "{ \"_desc\": \"Appointments\" }" --header "Content-Type: application/json" --url http://%ip%/local/appointments/metadata
+echo .
+
+echo Create Phone Messages
+curl -u admin: -d "{ \"_desc\": \"Phone Messages\" }" --header "Content-Type: application/json" --url http://%ip%/local/phonemsgs/metadata
+echo .
+
+echo Create Charts
+curl -u admin: -d "{ \"_desc\": \"Patient Charts\", \"icon\": \"workproduct\" }" --header "Content-Type: application/json" --url http://%ip%/local/charts/metadata
 echo .
 
 

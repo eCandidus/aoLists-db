@@ -8,11 +8,10 @@
     "url": "https://github.com/eCandidus/aoLists-db/"
   },
   "dependencies": {
-    "express": ">= 2.2.2",
-    "express-session": ">=1.4.0",
-	"raw-body": ">=1.2.2",
+    "express": ">= 4.4.3",
+    "raw-body": ">=1.2.2",
     "formidable": ">=1.0.15",
-    "mongodb": ">= 0.9.2",
+    "mongodb": ">= 1.4.7",
     "crypto": ">=0.0.3"
   },
   "description": "Advanced REST Node.js interface for MongoDB with subscriptions and attachments",
@@ -46,7 +45,7 @@
   "scripts": {
     "start": "node server.js"
   },
-  "version": "0.7.3",
+  "version": "0.7.6",
   "main": "server.js",
-  "license": "LGPL"
+  "license": "GPL"
 }

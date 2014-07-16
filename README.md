@@ -55,15 +55,19 @@ Supported REST calls (using Node.js route naming conventions):
 * `GET /` - List all databases
 
 * `GET /:db` - List all collections
-* `GET /:db/metadata` - Returns the database metadata
-* `POST /:db/metadata` - Stores the database metadata
 * `DELETE /:db` - Deletes the database.  Must be manager.
 
+* `GET /:db/metadata` - Returns the database metadata
+* `POST /:db/metadata` - Stores the database metadata
+
 * `GET /:db/:collection` - Returns all documents
+* `DELETE /:db/:collection` - Deletes the collection.  Must be manager
+* `GET /:db/:collection/:id` - Returns document with given _id
+
 * `GET /:db/:collection/metadata` - Return the collection metadata
 * `POST /:db/:collection/metadata` - Stores the collection metadata
-* `GET /:db/:collection/:id` - Returns document with given _id
-* `DELETE /:db/:collection` - Deletes the collection.  Msut be manager.
+* `DELETE /:db/:collection/metadata` - Deletes the collection metadata
+* `GET /allmetadata` - Return an array of all metadata for the collections
 
 * `GET /:db/:collection?query={'isDone'%3A false}` - Returns all documents satisfying query
 * `GET /:db/:collection?query={'isDone'%3A false}&limit=2&skip=2` - Ability to add options to query (see list below)
@@ -100,8 +104,17 @@ NOTE:  In the above examples, the collection is required.  The ? is the delimite
 
 * `GET /users` - Lists all the users (only available to managers)
 * `GET /users/:name/:pwd` - Adds a user to the user table (level=manager to flag as manager)
+* `GET /users/:name/:pwd/validate` - Returns whether the name and password are valid
 * `DELETE /users/:name` - Removes a user and subscriptions (only available to managers)
 * `GET /users/admin` - Display the administration web interface
+
+* `GET /metadata` - Returns the credentials user profile
+* `POST /metadata` - Sets the credentials user profile
+* `POST /metadata/set` - Sets entries in the credentials user profile
+* `GET /users/:user/metadata` - Returns the user profile
+* `POST /users/:user/metadata` - Sets the user profile
+* `POST /users/:user/metadata/set` - Sets entries in the user profile
+* `POST /users/metadata/set` - Sets entries in all the user profiles
 
 * `GET /util/hash/:value` - Returns the hash of the value
 
@@ -381,7 +394,7 @@ Use the `GET /:db/:collection/subscribed` to get an ID Coll for all the document
 Synchronization
 ---------------
 
-Although the "changes" call can be used to get a list of changes done between a date range, aoLists server provide for a simple mechanism to synchronize.  This is makes the API a "synch server".
+Although the "changes" call can be used to get a list of changes done between a date range, aoLists server provide for a simple mechanism to synchronize.  This is makes the API a `synch server`.
 
 `startsynch` - The startsynch call establishes a from/to date range to check.  It is the first call to make in the sequence.
 
@@ -410,10 +423,15 @@ The Synch Process
 
 7) If you call `rollbacksynch`, the "to" date is reset to null wthout changing the "from" date.
 
+Metadata
+--------
+
+aoLists makes use of metadata objects at the database, collection and user levels.  These metadata objects are JSON objects and can be used to store any information needed by the application.  They do not interfere with normal MongoDB operations.
+
 Configuring routes
 ------------------
 
-If you have databases with the names of "users" or "util", you can eliminate any possibility of conflict by changing the config.json entries of `db.users.label` or `db.util.label`.  For example, setting `db.user.label` to "logins" will change the routes to:
+If you have databases with the names of `users`, `profile` or `util`, you can eliminate any possibility of conflict by changing the config.json entries of `db.users.label`, `db.users.metadata.label` or `db.util.label`.  For example, setting `db.user.label` to "logins" will change the routes to:
 
 * `GET /logins` - Lists all the users (only available to managers)
 * `GET /logins/add/:name/:pwd` - Adds a user to the user table (level=manager flag as manager)
@@ -433,7 +451,6 @@ As they are used in the collection calls, the following values are not allowed a
 * rollbacksynch
 * lastsynch
 
-
 These are used in db calls:
 
 * describe
@@ -442,6 +459,11 @@ Using existing MongoDB collections
 ----------------------------------
 
 None of the changes in aoLists causes a conflict with existing MongoDB collections.  If you are using either _ver or _subs, you can change the fields used via config.json. 
+
+Testing
+-------
+
+A MS Windows batch file is included in /test/calls.bat.  It runs every command in the API.  The /test/run20,bat runs the calls.bat file as twenty separate instances, to simulate a multi-user environment.
 
 Content Type
 ------------
@@ -468,3 +490,8 @@ Authors
 ------------
 
 * Jose E. Gonzalez jr
+
+License
+-------
+
+All code contained herein is distributed under the LGPL 3.0 license.  All code is copyright 2014 Candid.Concept LC.
