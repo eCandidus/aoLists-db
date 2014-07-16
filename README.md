@@ -28,9 +28,7 @@ I begun with the work done by Mariano Fiorentino and Andrea Negro in AMID, first
 Installation
 ------------
 
-Installation is via npm: `npm install aolists`.
-
-After that you can just issue `aolists-rest` on the command line and the server should start.
+Installation is via npm: `npm install aolists-db`.
 
 Configuration
 -------------
