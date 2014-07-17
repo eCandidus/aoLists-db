@@ -28,7 +28,9 @@ I begun with the work done by Mariano Fiorentino and Andrea Negro in AMID, first
 Installation
 ------------
 
-Installation is via npm: `npm install aolists-db`.
+Installation is via npm: `npm install aolists-db`.  
+
+Once installed, you can access the API via localhost:42324.
 
 Configuration
 -------------

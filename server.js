@@ -25,6 +25,8 @@ var fs = require('fs'),
 var config = {
     'debug': false, // turn debug messages on/off
 
+    'limitThreads': 1, // number of threads (0 = all, >0 = number of threads, <0 = #cpus not used)
+
     'login': {
         'username': 'admin', // admin user name
         'hash': null // hash of password, if null no password required (BAD!)
@@ -132,6 +134,14 @@ if (aofn.config.debug) {
 
 // Count CPUs
 var numCPUs = require('os').cpus().length;
+if (aofn.config.limitThreads > 0) {
+    numCPUs = aofn.config.limitThreads;
+} else if (aofn.config.limitThreads < 0) {
+    numCPUs = numCPUs + aofn.config.limitThreads;
+    if (numCPUs < 1) {
+        numCPUs = 1;
+    }
+}
 
 if (!aofn.config.debug && numCPUs > 1 && cluster.isMaster) {
     // Fork workers.
