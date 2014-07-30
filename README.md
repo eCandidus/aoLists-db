@@ -111,9 +111,12 @@ NOTE:  In the above examples, the collection is required.  The ? is the delimite
 * `POST /metadata` - Sets the credentials user profile
 * `POST /metadata/set` - Sets entries in the credentials user profile
 * `GET /users/:user/metadata` - Returns the user profile
-* `POST /users/:user/metadata` - Sets the user profile
 * `POST /users/:user/metadata/set` - Sets entries in the user profile
 * `POST /users/metadata/set` - Sets entries in all the user profiles
+
+* `GET /noti/users` - Returns an array of users that have registered with the notifications sub-system
+* `GET /noti` - Returns an array of notification objects for the authenticated user
+* `POST /noti` - Sends a notification message to the user
 
 * `GET /util/hash/:value` - Returns the hash of the value
 
@@ -235,6 +238,11 @@ Some operations return attachment entries, which have a format of:
 
 The _desc field is returned if the description support is enabled.
 
+Metadata
+--------
+
+aoLists makes use of metadata objects at the database, collection and user levels.  These metadata objects are JSON objects and can be used to store any information needed by the application.  They do not interfere with normal MongoDB operations.
+
 Attachments
 -----------
 
@@ -264,7 +272,6 @@ Getting an attachment list ot attachments
 -----------------------------------------
 
 Use `GET /:db/:collection/:id/attached` to get an array of attachments for a given document.  Each attachemnt is returned as an attachment entry.
-
 
 Getting an attachment list of parent documents
 ----------------------------------------------
@@ -420,17 +427,57 @@ The Synch Process
 
 6) Call `commitsynch`.  This sets moves to "to" date used by startsynch to the "from" date and sets the "to" date to null, setting up the logic for the next synch cycle.
 
-7) If you call `rollbacksynch`, the "to" date is reset to null wthout changing the "from" date.
+7) If you call `rollbacksynch`, the "to" date is reset to null wthout changing the "from" date.''
 
-Metadata
---------
+Notifications
+-------------
 
-aoLists makes use of metadata objects at the database, collection and user levels.  These metadata objects are JSON objects and can be used to store any information needed by the application.  They do not interfere with normal MongoDB operations.
+aoLists adds an in-memory messaging layer that can be accessed via the API or by using of the socket-io package.  Messages are JSON objects in the following format:
+
+```javascript
+{
+	from: 'sending user'
+	to: 'recipient user'
+	message: 'message text',
+	subject: 'subject text (only used for e-mail notifications)'
+}
+```
+
+All messages are retained until delivery can be done by API call, socket-io connection or Google Cloud Messaging.
+
+socket.io
+---------
+
+The interface when using socket-io uses the following calls:
+
+`socket.emit('in', { name: 'user' })` - Registers the user as being available in the socket
+
+`socket.emit('out', { name: 'user' })` - Removes the user from the socket
+
+`socket.emit('qm', { from: 'sender', to: 'recipient', message: 'message' })` - Sends the message to all sockets where the recipient has registered
+
+`socket.on('qm', function(msg) { ... })` - Receives messages
+
+`socket.emit('data', { from: 'sender', to: 'recipient', ... })` - Sends the data exchange packet to all sockets where the recipient has registered
+
+`socket.on('data', function(msg) { ... })` - Receives data exchange packets
+
+Note that the layer automatically handles any disconnects by reconnecting as soon as the server becomes available.  Also note that you will receive messages addressed to any of the users gegistered to the socket.
+
+Google Cloud Messaging
+----------------------
+
+By setting a Google API server key in the `config.db.notifications.googleGCMKey` and setting a registration ID as the value for `googleGCMID` field of the user profile, when a message is sent to the user and the user has no socket.io registered socket, the message payload will be sent to the Google Cloud Messaging layer for delivery.
+
+E-Mail
+------
+
+When the notification `to` is an e-mail address, aoLists turns the notification into an e-mail and sends it using `nodemailer`.  The configuration options for nodemailer are founbd in `config.db.notifications.smtp`.
 
 Configuring routes
 ------------------
 
-If you have databases with the names of `users`, `profile` or `util`, you can eliminate any possibility of conflict by changing the config.json entries of `db.users.label`, `db.users.metadata.label` or `db.util.label`.  For example, setting `db.user.label` to "logins" will change the routes to:
+If you have databases with the names of `users`, `profile`, `noti` or `util`, you can eliminate any possibility of conflict by changing the config.json entries of `db.users.label`, `db.users.metadata.label`, `db.notifications.label` or `db.util.label`.  For example, setting `db.user.label` to "logins" will change the routes to:
 
 * `GET /logins` - Lists all the users (only available to managers)
 * `GET /logins/add/:name/:pwd` - Adds a user to the user table (level=manager flag as manager)
@@ -493,4 +540,4 @@ Authors
 License
 -------
 
-All code contained herein is distributed under the LGPL 3.0 license.  All code is copyright 2014 Candid.Concept LC.
+All code contained herein is distributed under the GPL 3.0 license.  All code is copyright 2014 Candid.Concept LC.

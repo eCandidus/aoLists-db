@@ -23,9 +23,16 @@ var fs = require('fs'),
     cluster = require('cluster');
 
 var config = {
-    'debug': false, // turn debug messages on/off
+    'debug': true, // turn debug messages on/off
 
-    'limitThreads': 1, // number of threads (0 = all, >0 = number of threads, <0 = #cpus not used)
+    'aoListsExchange': {
+        'host': 'localhost', // host address for global data exchange server
+        'port': 22553, // port
+        'uuid': null, // uuid for the site for global data exchange (provided by aoLists)
+        'key': null // security key
+    },
+
+    'limitThreads': 0, // number of threads (0 = all, >0 = number of threads, <0 = #cpus not used)
 
     'login': {
         'username': 'admin', // admin user name
@@ -41,11 +48,12 @@ var config = {
         }
     },
 
-    'sessionSec': 'mysecretgoeshere', // key to encode session with
+    'sessionSec': null, // key to encode session with (if null one will be created on launch)
 
     'enableDESC': true, // enable description support
     'enableSUBS': true, // enable subscription support
     'enableATTACH': true, // enable attachment support
+    'enableNOTI': true, // enable notification support
 
     'operations': ['count', 'csv', 'distinct', 'find', 'findone', 'idcoll', 'keys'], // Valid operations
 
@@ -71,6 +79,7 @@ var config = {
             'db': 'aoLists', // database where user collection is kept
             'label': 'users', // route name to be used for user related routes
             'collection': 'users', // collection where users are kept
+            'enforceNameRule': true, // force names and passwords lowercase and names no [a-z]\w*
             'mgrlevel': 'manager', // manager level
             'metadata': {
                 'field': '_metadata', // field to use to store the user profile
@@ -96,6 +105,25 @@ var config = {
                 'stylefld': 'style' // field that holds the version
             }
         },
+        'notifications': {
+            'db': 'aoLists', // database where notifications are kept
+            'collection': '_noti', // collection where notifications are kept
+            'label': 'noti', // route name to be used for notifications routes
+            'fields': {
+                'tofld': 'to',
+                'typefld': '_type'
+            },
+            'smtpsubject': 'aoList Quick Message', // The subject line for SMTP notifications
+            'smtp': { // nodemailer smtp transport config
+                'service': 'gmail',
+                'auth': {
+                    'user': 'username@gmail.com',
+                    'pass': 'password'
+                }
+            },
+            'googleGCMKey': null, // GCM server key
+            'appleAPNKey': null // Apple server key (TBD)
+        },
         'defs': {
             'db': 'aoLists', // database where definitions collection is kept
             'collection': 'defs' // collection where definitions are kept
@@ -105,11 +133,14 @@ var config = {
         }
     }
 };
-try {
-    // config.json hold CHANGES to the settings above
-    config = aofn.mergeRecursive(config, JSON.parse(fs.readFileSync(process.cwd() + '/config.json')));
-} catch (e) {
-    console.log('Unable to read "' + process.cwd() + '/config.json' + '" - ' + e);
+var file = process.cwd() + '/config.json';
+if (fs.existsSync(file)) {
+    try {
+        // config.json hold CHANGES to the settings above
+        config = aofn.mergeRecursive(config, JSON.parse(fs.readFileSync(file)));
+    } catch (e) {
+        console.log('Unable to read "' + process.cwd() + '/config.json' + '" - ' + e);
+    }
 }
 aofn.config = config;
 
@@ -126,6 +157,12 @@ require('./lib/util_att');
 require('./lib/util_ao');
 require('./lib/util_wu');
 require('./lib/util_string');
+require('./lib/util_socket');
+
+// Session secret
+if (!aofn.config.sessionSec) {
+    aofn.config.sessionSec = aofn.UUID();
+}
 
 // Log mode
 if (aofn.config.debug) {
@@ -162,10 +199,6 @@ if (!aofn.config.debug && numCPUs > 1 && cluster.isMaster) {
     // Load routes
     require('./lib/rest');
 
-    //process.on('exit', function (){
-    //	console.log('Goodbye!');
-    //});
-
     // Error handler - no code passed back
     if (!aofn.config.debug) {
         app.use(function (err, req, res, next) {
@@ -191,12 +224,24 @@ if (!aofn.config.debug && numCPUs > 1 && cluster.isMaster) {
             cert: sslCert
         }, app).listen(aofn.config.server.port, function () {
             console.log('aoLists SSL server started on port ' + aofn.config.server.port);
+            if (aofn.config.enableNOTI) {
+                aofn.socket.init(https);
+                if (aofn.config.aoListsExchange.uuid) {
+                    aofn.socketserver.init();
+                }
+            }
         });
     } else {
         // Launch HTTP
         var http = require('http');
         server = http.createServer(app).listen(aofn.config.server.port, function () {
             console.log('aoLists server started on port ' + aofn.config.server.port);
+            if (aofn.config.enableNOTI) {
+                aofn.socket.init(http);
+                if (aofn.config.aoListsExchange.uuid) {
+                    aofn.socketserver.init();
+                }
+            }
         });
     }
 }

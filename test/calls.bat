@@ -40,6 +40,13 @@ echo Validate (should return fail)
 curl -u admin: http://%ip%/users/jose/xys/validate 
 echo .
 
+echo Notifications (add)...
+curl -u admin: -d "{ \"to\": \"samson\", \"msg\": \"The brown fox jumped over the moon\" }" http://%ip%/noti
+echo.
+echo Notifications (retrieve)...
+curl -u admin: http://%ip%/noti
+echo.
+
 echo List databases...
 curl -u admin: http://%ip%/ 
 echo .
@@ -194,7 +201,6 @@ echo .
 echo Getting metadata...
 curl -u jose:xyz --url http://%ip%/users/cathy/metadata 
 echo.
-
 
 echo List collections...
 curl -u admin: http://%ip%/local 
