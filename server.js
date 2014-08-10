@@ -23,7 +23,7 @@ var fs = require('fs'),
     cluster = require('cluster');
 
 var config = {
-    'debug': true, // turn debug messages on/off
+    'debug': false, // turn debug messages on/off
 
     'aoListsExchange': {
         'host': 'localhost', // host address for global data exchange server
